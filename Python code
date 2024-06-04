@@ -1,0 +1,33 @@
+# Loading in required libraries
+import pandas as pd
+import seaborn as sns
+import numpy as np
+
+# Start!
+data = pd.read_csv("data/nobel.csv")
+
+# What is the most commonly awarded gender and birth country?
+top_gender = data["sex"].value_counts().index[0]
+top_country = data["birth_country"].value_counts().index[0]
+
+# Which decade had the highest ratio of US-born Nobel Prize winners to total winners in all categories?
+data["us_winner"] = data["birth_country"] == "United States of America"
+data["decade"] = (np.floor(data["year"]/10)*10).astype(int)
+mean_decade_usa = data.groupby("decade", as_index=False)["us_winner"].mean()
+max_decade_usa = mean_decade_usa[mean_decade_usa["us_winner"] == mean_decade_usa["us_winner"].max()]["decade"].values[0]
+
+# Which decade and Nobel Prize category combination had the highest proportion of female laureates?
+
+data["Female"] = data["sex"] == "Female"
+dec_cat_fem_mean = data.groupby(["decade","category"], as_index=False)["Female"].mean()
+max_female = dec_cat_fem_mean[dec_cat_fem_mean["Female"] == dec_cat_fem_mean["Female"].max()][["decade", "category"]]
+max_female_dict = {max_female["decade"].values[0]:max_female["category"].values[0]}
+
+# Who was the first woman to receive a Nobel Prize, and in what category?
+female_min_data = data[data["Female"]].iloc[0]
+first_woman_name = female_min_data.loc["full_name"]
+first_woman_category = female_min_data.loc["category"]
+
+# Which individuals or organizations have won more than one Nobel Prize throughout the years?
+data_name_prize = data["full_name"].value_counts()
+repeat_list = list(data_name_prize[data_name_prize >= 2].index)
